@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShieldAI — Phishing Detection</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: '#0A0F1C',
+            surface: '#111A2E',
+            'surface-2': '#182444',
+            border: '#24304F',
+            text: '#E7ECF7',
+            'text-dim': '#8C97B5',
+            accent: '#4FD8CE',
+            safe: '#34D399',
+            warning: '#FBBF24',
+            danger: '#FB6B6B'
+          },
+          fontFamily: {
+            heading: ['Space Grotesk', 'sans-serif'],
+            body: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          boxShadow: {
+            panel: '0 10px 30px rgba(0,0,0,0.35)'
+          }
+        }
+      }
+    };
+  </script>
+
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="bg-bg text-text font-body min-h-screen">
+
+  <div class="relative min-h-screen grid-bg">
+    <!-- Top subtle bar -->
+    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-accent/0 via-accent/40 to-accent/0"></div>
+
+    <!-- MAIN -->
+    <main class="relative max-w-6xl mx-auto px-4 sm:px-6 py-10">
+
+      <!-- SCREEN 1: AUTH -->
+      <section id="screen1" class="screen block">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+          <!-- Left brand panel -->
+          <div class="bg-surface rounded-2xl border border-border shadow-panel p-7 flex flex-col">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L20 6V12C20 17 16.5 20.5 12 22C7.5 20.5 4 17 4 12V6L12 2Z" stroke="#4FD8CE" stroke-width="2"/>
+                  <path d="M8.5 12.2L10.8 14.5L15.6 9.7" stroke="#4FD8CE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <h1 class="font-heading text-2xl sm:text-3xl leading-tight">ShieldAI</h1>
+                <p class="text-text-dim text-sm">AI-powered phishing detection for SOC-grade response.</p>
+              </div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-4">
+              <div class="rounded-xl bg-surface-2 border border-border p-4">
+                <div class="text-text-dim text-xs">Threats Blocked</div>
+                <div class="font-mono text-xl font-bold">12,480</div>
+                <div class="text-text-dim text-xs mt-1">last 24h</div>
+              </div>
+              <div class="rounded-xl bg-surface-2 border border-border p-4">
+                <div class="text-text-dim text-xs">Live Scans</div>
+                <div class="font-mono text-xl font-bold">3,219</div>
+                <div class="text-text-dim text-xs mt-1">in queue</div>
+              </div>
+            </div>
+
+            <div class="mt-6 terminal rounded-xl bg-surface-2 border border-border p-4">
+              <div class="flex items-center justify-between">
+                <div class="text-xs text-text-dim">console</div>
+                <div class="text-xs text-text-dim">auth-session</div>
+              </div>
+              <div class="mt-3 text-sm text-text">
+                <div>> initializing session <span class="text-safe">ok</span></div>
+                <div class="mt-1 text-text-dim">> loading heuristics <span class="text-safe">ok</span></div>
+                <div class="mt-1 text-text-dim">> connecting to local analyzer <span class="text-safe">ok</span></div>
+                <div class="mt-2 text-text-dim">> ready<span class="blink">|</span></div>
+              </div>
+            </div>
+
+            <div class="mt-auto pt-6 text-xs text-text-dim">
+              By continuing, you agree to secure handling of user-submitted content. (Demo UI — no network calls.)
+            </div>
+          </div>
+
+          <!-- Right auth form -->
+          <div class="bg-surface rounded-2xl border border-border shadow-panel p-7">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="font-heading text-xl">Welcome back</h2>
+                <p class="text-text-dim text-sm">Validate credentials locally, then start scanning.</p>
+              </div>
+              <div class="hidden sm:flex items-center gap-2">
+                <span class="text-xs text-text-dim">SOC mode</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-accent"></span>
+              </div>
+            </div>
+
+            <div class="mt-5 border-b border-border">
+              <div class="flex gap-2">
+                <button id="tabSignIn" data-tab="signin" class="auth-tab px-4 py-2 rounded-t-xl border border-border border-b-0 bg-surface-2 text-text-dim hover:text-text hover:bg-surface-2 transition">
+                  Sign In
+                </button>
+                <button id="tabCreate" data-tab="create" class="auth-tab px-4 py-2 rounded-t-xl border border-border border-b-0 bg-surface text-text hover:text-text bg-surface transition">
+                  Create Account
+                </button>
+              </div>
+            </div>
+
+            <form id="authForm" class="mt-5" autocomplete="off">
+              <div class="grid grid-cols-1 gap-4">
+                <div>
+                  <label class="text-sm text-text-dim">Email</label>
+                  <input id="email" type="email" class="mt-1 w-full rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="name@company.com" />
+                  <div id="emailErr" class="mt-1 text-sm text-danger hidden"></div>
+                </div>
+
+                <div>
+                  <label class="text-sm text-text-dim">Password</label>
+                  <div class="mt-1 flex items-center gap-2">
+                    <input id="password" type="password" class="flex-1 rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="••••••••" />
+                    <button id="togglePw" type="button" class="shrink-0 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text-dim hover:text-text hover:border-accent focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Show/Hide password">
+                      Show
+                    </button>
+                  </div>
+                  <div id="pwErr" class="mt-1 text-sm text-danger hidden"></div>
+                </div>
+
+                <div id="fullNameWrap" class="hidden">
+                  <label class="text-sm text-text-dim">Full Name</label>
+                  <input id="fullName" type="text" class="mt-1 w-full rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Analyst Name" />
+                  <div id="nameErr" class="mt-1 text-sm text-danger hidden"></div>
+                </div>
+
+                <div id="pwStrengthWrap" class="hidden">
+                  <div class="flex items-center justify-between">
+                    <label class="text-sm text-text-dim">Password strength</label>
+                    <div id="pwStrengthLabel" class="text-xs text-text-dim font-mono">—</div>
+                  </div>
+                  <div class="mt-2 h-2 rounded-full bg-border/60 overflow-hidden">
+                    <div id="pwStrengthBar" class="h-full w-0 bg-danger transition-all"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-5 flex items-center justify-between gap-3">
+                <label class="flex items-center gap-2 text-sm text-text-dim">
+                  <input id="remember" type="checkbox" class="accent-cyan-400" />
+                  Remember this device
+                </label>
+                <a id="forgot" href="#" class="text-sm text-accent hover:underline">Forgot password?</a>
+              </div>
+
+              <div id="authToast" class="mt-4 hidden rounded-xl border border-border bg-surface-2 p-3 text-sm text-text-dim"></div>
+
+              <button id="authSubmit" type="submit" class="mt-5 w-full rounded-2xl bg-accent text-bg font-semibold px-4 py-3 hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                Continue
+              </button>
+
+              <div id="authLoading" class="mt-4 hidden items-center justify-center gap-2 text-text-dim">
+                <div class="scan-sweep w-2 h-2 rounded-full bg-accent"></div>
+                <span>Authenticating…</span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: SCAN CONSOLE -->
+      <section id="screen2" class="screen hidden">
+        <div class="bg-surface rounded-2xl border border-border shadow-panel p-6 sm:p-8">
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h2 class="font-heading text-2xl">ShieldAI Assistant</h2>
+              <p class="text-text-dim text-sm mt-1">Paste a suspicious link, email text, or upload a screenshot — I&apos;ll analyze it for phishing risk.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="rounded-xl border border-border bg-surface-2 px-3 py-2">
+                <div class="text-xs text-text-dim">session</div>
+                <div class="font-mono text-sm">LOCAL-ANALYZER</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-border pt-6">
+            <!-- Tabs -->
+            <div class="flex flex-wrap gap-2" role="tablist" aria-label="Input modes">
+              <button class="mode-tab px-4 py-2 rounded-xl border border-border bg-surface-2 text-text-dim hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400" data-mode="url" aria-selected="true">URL</button>
+              <button class="mode-tab px-4 py-2 rounded-xl border border-border bg-surface-2 text-text-dim hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400" data-mode="text" aria-selected="false">Email/Message text</button>
+              <button class="mode-tab px-4 py-2 rounded-xl border border-border bg-surface-2 text-text-dim hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400" data-mode="image" aria-selected="false">Screenshot</button>
+            </div>
+
+            <!-- Chat area -->
+            <div class="mt-6">
+              <div id="chatLog" class="space-y-4">
+                <div class="flex">
+                  <div class="max-w-xl">
+                    <div class="inline-flex items-center rounded-2xl border border-border bg-surface-2 px-4 py-2 text-sm">
+                      <span class="text-text-dim">&nbsp;</span>
+                      <span class="text-sm text-text">Paste content and press <span class="text-accent font-semibold">Analyze</span>. I&apos;ll return a risk verdict.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Input composer -->
+              <div class="mt-6">
+                <!-- URL input -->
+                <div id="modeUrl" class="mode-panel">
+                  <label class="text-sm text-text-dim">Suspicious URL</label>
+                  <input id="urlInput" type="text" class="mt-1 w-full rounded-2xl bg-bg/40 border border-border px-4 py-3 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="https://example.xyz/login?verify=1" />
+                  <div class="mt-2 text-xs text-text-dim font-mono">Tip: include domain, path, and query string.</div>
+                </div>
+
+                <!-- Text input -->
+                <div id="modeText" class="mode-panel hidden">
+                  <label class="text-sm text-text-dim">Email / Message</label>
+                  <textarea id="textInput" rows="5" class="mt-1 w-full rounded-2xl bg-bg/40 border border-border px-4 py-3 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Dear Customer... verify your account immediately..."></textarea>
+                  <div class="mt-2 text-xs text-text-dim font-mono">Paste the full message body for best signals.</div>
+                </div>
+
+                <!-- Image input -->
+                <div id="modeImage" class="mode-panel hidden">
+                  <label class="text-sm text-text-dim">Drag & drop screenshot</label>
+                  <div id="dropZone" class="mt-2 rounded-2xl border border-border border-dashed bg-bg/30 p-6 flex flex-col items-center justify-center gap-2">
+                    <div class="text-accent">＋</div>
+                    <div class="text-text text-sm">Click to upload or drag a file here</div>
+                    <div class="text-xs text-text-dim">PNG/JPG/WebP • OCR simulated in this demo</div>
+                    <input id="fileInput" type="file" accept="image/*" class="hidden" />
+                  </div>
+
+                  <div id="imagePreviewWrap" class="mt-4 hidden">
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm text-text-dim">Preview</div>
+                      <button id="clearImage" type="button" class="rounded-xl border border-border bg-surface-2 px-3 py-1.5 text-xs text-text-dim hover:text-text hover:border-accent focus:outline-none focus:ring-2 focus:ring-cyan-400">Remove</button>
+                    </div>
+                    <div class="mt-2 rounded-xl border border-border bg-surface-2 p-3 inline-block">
+                      <img id="imagePreview" class="w-40 h-24 object-cover rounded-lg" alt="preview" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-5 flex items-center gap-3">
+                  <button id="analyzeBtn" type="button" disabled class="flex-1 rounded-2xl bg-accent/20 text-accent font-semibold px-4 py-3 border border-accent/30 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                    Analyze
+                  </button>
+                  <div id="analyzingIndicator" class="hidden items-center gap-2 text-text-dim font-mono">
+                    <span class="scan-sweep w-2.5 h-2.5 rounded-full bg-accent"></span>
+                    <span>scan…</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: RESULT -->
+      <section id="screen3" class="screen hidden">
+        <div class="bg-surface rounded-2xl border border-border shadow-panel p-6 sm:p-8">
+          <div id="verdictTop" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div id="verdictIcon" class="w-11 h-11 rounded-2xl flex items-center justify-center border"></div>
+              <div>
+                <div id="verdictLabel" class="font-heading text-2xl">—</div>
+                <div id="verdictSub" class="text-sm text-text-dim mt-1">—</div>
+              </div>
+            </div>
+            <div class="flex flex-col items-start sm:items-end">
+              <div class="font-mono text-xs text-text-dim">Risk score</div>
+              <div class="flex items-center gap-3">
+                <div id="scorePct" class="font-mono text-4xl font-bold">0%</div>
+                <div class="w-48 sm:w-64">
+                  <div class="h-2 rounded-full bg-border/60 overflow-hidden">
+                    <div id="scoreBar" class="h-full w-0"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 border-t border-border pt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="rounded-2xl bg-surface-2 border border-border p-5">
+              <div class="flex items-center justify-between">
+                <h3 class="font-heading text-lg">System Analysis</h3>
+                <div class="text-xs text-text-dim font-mono">heuristics_v1</div>
+              </div>
+              <div id="reasonsList" class="mt-4 space-y-3"></div>
+            </div>
+
+            <div class="rounded-2xl bg-surface-2 border border-border p-5">
+              <div class="flex items-center justify-between">
+                <h3 class="font-heading text-lg">Extracted Text (OCR/Sim)</h3>
+                <div id="ocrTag" class="text-xs text-text-dim font-mono">—</div>
+              </div>
+              <div class="mt-3">
+                <div id="ocrBox" class="hidden terminal text-sm rounded-xl border border-border bg-bg/30 p-3 max-h-64 overflow-auto"></div>
+                <div id="ocrEmpty" class="text-sm text-text-dim mt-2">No OCR text for this input mode.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 flex flex-col sm:flex-row gap-3">
+            <button id="scanAnother" class="flex-1 rounded-2xl bg-surface-2 border border-border px-4 py-3 text-text font-semibold hover:border-accent hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400">Scan Another</button>
+            <button id="downloadReport" class="flex-1 rounded-2xl bg-accent px-4 py-3 text-bg font-semibold hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-cyan-400">Download Report</button>
+          </div>
+
+          <div id="resultToast" class="mt-4 hidden rounded-xl border border-border bg-bg/30 p-3 text-sm text-text-dim"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Toast placeholder used by links -->
+    <div id="globalToast" class="fixed bottom-5 left-1/2 -translate-x-1/2 hidden z-50 max-w-xl w-[92vw] rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-text-dim shadow-panel"></div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
+
+
