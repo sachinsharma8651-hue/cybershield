@@ -306,6 +306,10 @@ function escapeHtml(str) {
     .replaceAll("'", '&#039;');
 }
 
+
+
+
+
 function renderResult(result) {
   state.analysis.lastResult = result;
   const meta = verdictMeta(result.verdict);
@@ -455,10 +459,20 @@ function wireAuth() {
 
   $('togglePw').addEventListener('click', () => {
     const pw = $('password');
+    const iconEye = $('iconEye');
+    const iconEyeSlash = $('iconEyeSlash');
+
+    if (!pw) return;
     const isHidden = pw.type === 'password';
     pw.type = isHidden ? 'text' : 'password';
-    $('togglePw').textContent = isHidden ? 'Hide' : 'Show';
+
+    // Swap icons to match the current state.
+    if (iconEye && iconEyeSlash) {
+      iconEye.classList.toggle('hidden', !isHidden);
+      iconEyeSlash.classList.toggle('hidden', isHidden);
+    }
   });
+
 
   $('password').addEventListener('input', () => {
     const pw = $('password').value;
@@ -505,9 +519,10 @@ function wireAuth() {
       state.chat.uploadedImage = null;
       state.chat.uploadedImagePreviewUrl = null;
       $('imagePreviewWrap').classList.add('hidden');
-      $('urlInput').value = '';
-      $('textInput').value = '';
+      const smartInput = $('smartInput');
+      if (smartInput) smartInput.value = '';
       $('fileInput').value = '';
+
 
       $('chatLog').innerHTML = `
             <div class="flex">
@@ -520,35 +535,81 @@ function wireAuth() {
             </div>
           `;
 
-      setActiveMode('url');
+      // Analyze button wiring is handled inside wireScanConsole() using #smartInput + image state.
+
     }, 650);
   });
 }
 
 function wireScanConsole() {
-  document.querySelectorAll('.mode-tab').forEach((btn) => {
-    btn.addEventListener('click', () => setActiveMode(btn.dataset.mode));
-  });
-
-  $('urlInput').addEventListener('input', updateAnalyzeEnabled);
-  $('textInput').addEventListener('input', updateAnalyzeEnabled);
-
-  const dropZone = $('dropZone');
+  const smartInput = $('smartInput');
+  const smartUploadBox = $('smartUploadBox');
   const fileInput = $('fileInput');
+  const browseBtn = $('browseBtn');
   const preview = $('imagePreview');
   const previewWrap = $('imagePreviewWrap');
   const clearImage = $('clearImage');
+  const analyzeBtn = $('analyzeBtn');
+  const analysisOverlay = $('analysisOverlay');
+  const analysisProgressBar = $('analysisProgressBar');
 
-  dropZone.addEventListener('click', () => fileInput.click());
-  dropZone.addEventListener('dragover', (e) => {
+  if (!smartInput || !smartUploadBox || !fileInput || !preview || !previewWrap || !analyzeBtn) {
+    // If the DOM is out of sync, fail softly instead of throwing.
+    console.warn('ShieldAI UI wiring incomplete: required elements not found.');
+    return;
+  }
+
+  function setOverlayActive(active) {
+    if (!analysisOverlay) return;
+    if (active) {
+      analysisOverlay.classList.remove('hidden');
+      analysisOverlay.classList.add('active');
+      if (analysisProgressBar) {
+        analysisProgressBar.style.width = '15%';
+      }
+    } else {
+      analysisOverlay.classList.add('hidden');
+      analysisOverlay.classList.remove('active');
+      if (analysisProgressBar) analysisProgressBar.style.width = '0%';
+    }
+  }
+
+  function getTextContent() {
+    return String(smartInput.value || '').trim();
+  }
+
+  function updateAnalyzeEnabledLocal() {
+    const text = getTextContent();
+    const hasImage = !!state.chat.uploadedImage;
+    const hasTextEnough = text.length >= 6;
+    analyzeBtn.disabled = !(hasImage || hasTextEnough);
+    analyzeBtn.className = analyzeBtn.disabled
+      ? 'flex-1 rounded-2xl bg-accent/20 text-accent font-semibold px-4 py-3 border border-accent/30 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyan-400'
+      : 'flex-1 rounded-2xl bg-accent text-bg font-semibold px-4 py-3 border border-transparent hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-cyan-400';
+  }
+
+  smartInput.addEventListener('input', updateAnalyzeEnabledLocal);
+
+  if (browseBtn) {
+    browseBtn.addEventListener('click', () => fileInput.click());
+  }
+
+  // Drag & drop for screenshot uploads
+  // Note: file picker is intentionally opened only via the Browse button.
+  // Drag & drop is still supported.
+
+  // (No click handler on smartUploadBox.)
+
+
+  smartUploadBox.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropZone.classList.add('border-accent/60');
+    smartUploadBox.classList.add('border-accent/60');
   });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-accent/60'));
-  dropZone.addEventListener('drop', (e) => {
+  smartUploadBox.addEventListener('dragleave', () => smartUploadBox.classList.remove('border-accent/60'));
+  smartUploadBox.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('border-accent/60');
-    const file = e.dataTransfer.files?.[0];
+    smartUploadBox.classList.remove('border-accent/60');
+    const file = e.dataTransfer?.files?.[0];
     if (file) handleImageFile(file);
   });
 
@@ -564,72 +625,89 @@ function wireScanConsole() {
 
     preview.src = state.chat.uploadedImagePreviewUrl;
     previewWrap.classList.remove('hidden');
-    updateAnalyzeEnabled();
+    updateAnalyzeEnabledLocal();
   }
 
-  clearImage.addEventListener('click', () => {
-    if (state.chat.uploadedImagePreviewUrl) URL.revokeObjectURL(state.chat.uploadedImagePreviewUrl);
-    state.chat.uploadedImage = null;
-    state.chat.uploadedImagePreviewUrl = null;
-    fileInput.value = '';
-    previewWrap.classList.add('hidden');
-    preview.src = '';
-    updateAnalyzeEnabled();
-  });
+  if (clearImage) {
+    clearImage.addEventListener('click', () => {
+      if (state.chat.uploadedImagePreviewUrl) URL.revokeObjectURL(state.chat.uploadedImagePreviewUrl);
+      state.chat.uploadedImage = null;
+      state.chat.uploadedImagePreviewUrl = null;
+      fileInput.value = '';
+      previewWrap.classList.add('hidden');
+      preview.src = '';
+      updateAnalyzeEnabledLocal();
+    });
+  }
 
-  $('analyzeBtn').addEventListener('click', () => {
-    const mode = state.chat.activeMode;
-    const input = getActiveInput();
+  function detectTypeForText(text) {
+    const lower = String(text || '').toLowerCase();
+    const looksUrl = lower.startsWith('http://') || lower.startsWith('https://') || /\./.test(lower);
+    return looksUrl ? 'url' : 'text';
+  }
 
-    if (mode === 'url' && String(input).length < 6) return;
-    if (mode === 'text' && String(input).length < 10) return;
-    if (mode === 'image' && !state.chat.uploadedImage) return;
+  analyzeBtn.addEventListener('click', () => {
+    const text = getTextContent();
+    const hasImage = !!state.chat.uploadedImage;
 
-    if (mode === 'image') {
+    if (!hasImage && text.length < 6) return;
+
+    let mode;
+    let content;
+    if (hasImage) {
+      mode = 'image';
+      content = state.chat.uploadedImage;
       appendChatBubble('Screenshot uploaded (' + state.chat.uploadedImage.name + ')');
     } else {
-      appendChatBubble(String(input).slice(0, 220) + (String(input).length > 220 ? '…' : ''));
+      mode = detectTypeForText(text);
+      content = text;
+      appendChatBubble(text.slice(0, 220) + (text.length > 220 ? '…' : ''));
     }
 
     appendAssistantTyping();
-    $('analyzingIndicator').classList.remove('hidden');
-    $('analyzeBtn').disabled = true;
+    analyzeBtn.disabled = true;
+    setOverlayActive(true);
 
-    const payload = {
-      type: mode,
-      content: mode === 'image' ? state.chat.uploadedImage : input
-    };
+    const payload = { type: mode, content };
     state.analysis.lastInput = payload;
 
     setTimeout(() => {
-      const result = analyzeInput(mode, payload.content);
-
+      const result = analyzeInput(mode, content);
       removeTyping();
-      $('analyzingIndicator').classList.add('hidden');
-      $('analyzeBtn').disabled = false;
+      analyzeBtn.disabled = false;
+      setOverlayActive(false);
 
       renderResult(result);
       showScreen('screen3');
     }, 1300);
   });
+
+  updateAnalyzeEnabledLocal();
 }
+
 
 function wireResultScreen() {
   $('scanAnother').addEventListener('click', () => {
-    $('resultToast').classList.add('hidden');
+    const resultToast = $('resultToast');
+    if (resultToast) resultToast.classList.add('hidden');
     state.analysis.lastResult = null;
     state.analysis.lastInput = null;
 
-    $('urlInput').value = '';
-    $('textInput').value = '';
+    const smartInput = $('smartInput');
+    if (smartInput) smartInput.value = '';
 
     if (state.chat.uploadedImagePreviewUrl) URL.revokeObjectURL(state.chat.uploadedImagePreviewUrl);
     state.chat.uploadedImage = null;
     state.chat.uploadedImagePreviewUrl = null;
-    $('fileInput').value = '';
 
-    $('imagePreviewWrap').classList.add('hidden');
-    $('imagePreview').src = '';
+    const fileInput = $('fileInput');
+    if (fileInput) fileInput.value = '';
+
+    const imagePreviewWrap = $('imagePreviewWrap');
+    if (imagePreviewWrap) imagePreviewWrap.classList.add('hidden');
+
+    const imagePreview = $('imagePreview');
+    if (imagePreview) imagePreview.src = '';
 
     $('chatLog').innerHTML = `
           <div class="flex">
@@ -642,11 +720,17 @@ function wireResultScreen() {
           </div>
         `;
 
-    setActiveMode('url');
+    // Re-enable analyze button based on current state.
+    const analyzeBtn = $('analyzeBtn');
+    if (analyzeBtn) {
+      analyzeBtn.disabled = !(smartInput && smartInput.value.trim().length >= 6) && !(state.chat.uploadedImage);
+    }
+
     showScreen('screen2');
   });
 
   $('downloadReport').addEventListener('click', () => {
+
     const t = $('resultToast');
     t.classList.remove('hidden');
     t.textContent = 'Report download is a placeholder in this demo (no PDF generation).';
