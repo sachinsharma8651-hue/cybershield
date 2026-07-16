@@ -54,37 +54,39 @@
     <main class="relative max-w-6xl mx-auto px-4 sm:px-6 py-10">
 
       <!-- SCREEN 1: AUTH -->
-      <section id="screen1" class="screen block">
+      <section id="screen1" class="screen screen-enter block">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
           <!-- Left brand panel -->
-          <div class="bg-surface rounded-2xl border border-border shadow-panel p-7 flex flex-col">
+          <div class="glass-card rounded-2xl border border-border shadow-panel p-7 flex flex-col card-hover">
             <div class="flex items-center gap-3">
-              <div class="w-11 h-11 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center">
+              <div class="w-11 h-11 rounded-xl bg-accent/10 border border-accent/30 flex items-center justify-center logo-glow">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L20 6V12C20 17 16.5 20.5 12 22C7.5 20.5 4 17 4 12V6L12 2Z" stroke="#4FD8CE" stroke-width="2"/>
-                  <path d="M8.5 12.2L10.8 14.5L15.6 9.7" stroke="#4FD8CE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 2L20 6V12C20 17 16.5 20.5 12 22C7.5 20.5 4 17 4 12V6L12 2Z" stroke="#FFD700" stroke-width="2"/>
+                  <path d="M8.5 12.2L10.8 14.5L15.6 9.7" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
               <div>
-                <h1 class="font-heading text-2xl sm:text-3xl leading-tight">ShieldAI</h1>
+                <h1 class="font-heading text-2xl sm:text-3xl leading-tight">
+                  <span class="text-[#FFD700]">Shield</span><span class="text-white">AI</span>
+                </h1>
                 <p class="text-text-dim text-sm">AI-powered phishing detection for SOC-grade response.</p>
               </div>
             </div>
 
             <div class="mt-6 grid grid-cols-2 gap-4">
-              <div class="rounded-xl bg-surface-2 border border-border p-4">
+              <div class="stat-card rounded-xl bg-surface-2/80 border border-border p-4">
                 <div class="text-text-dim text-xs">Threats Blocked</div>
                 <div class="font-mono text-xl font-bold">12,480</div>
                 <div class="text-text-dim text-xs mt-1">last 24h</div>
               </div>
-              <div class="rounded-xl bg-surface-2 border border-border p-4">
+              <div class="stat-card rounded-xl bg-surface-2/80 border border-border p-4">
                 <div class="text-text-dim text-xs">Live Scans</div>
                 <div class="font-mono text-xl font-bold">3,219</div>
                 <div class="text-text-dim text-xs mt-1">in queue</div>
               </div>
             </div>
 
-            <div class="mt-6 terminal rounded-xl bg-surface-2 border border-border p-4">
+            <div class="mt-6 terminal rounded-xl bg-surface-2/80 border border-border p-4">
               <div class="flex items-center justify-between">
                 <div class="text-xs text-text-dim">console</div>
                 <div class="text-xs text-text-dim">auth-session</div>
@@ -103,7 +105,7 @@
           </div>
 
           <!-- Right auth form -->
-          <div class="bg-surface rounded-2xl border border-border shadow-panel p-7">
+          <div class="glass-card rounded-2xl border border-border shadow-panel p-7 card-hover">
             <div class="flex items-center justify-between">
               <div>
                 <h2 class="font-heading text-xl">Welcome back</h2>
@@ -111,7 +113,7 @@
               </div>
               <div class="hidden sm:flex items-center gap-2">
                 <span class="text-xs text-text-dim">SOC mode</span>
-                <span class="w-2.5 h-2.5 rounded-full bg-accent"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-accent pulse-dot"></span>
               </div>
             </div>
 
@@ -130,16 +132,25 @@
               <div class="grid grid-cols-1 gap-4">
                 <div>
                   <label class="text-sm text-text-dim">Email</label>
-                  <input id="email" type="email" class="mt-1 w-full rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="name@company.com" />
+                  <input id="email" type="email" class="input-field mt-1 w-full rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="name@company.com" />
                   <div id="emailErr" class="mt-1 text-sm text-danger hidden"></div>
                 </div>
 
+                <!-- Password field with inline eye toggle -->
                 <div>
                   <label class="text-sm text-text-dim">Password</label>
-                  <div class="mt-1 flex items-center gap-2">
-                    <input id="password" type="password" class="flex-1 rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="••••••••" />
-                    <button id="togglePw" type="button" class="shrink-0 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text-dim hover:text-text hover:border-accent focus:outline-none focus:ring-2 focus:ring-cyan-400" aria-label="Show/Hide password">
-                      Show
+                  <div class="password-wrapper mt-1 relative">
+                    <input id="password" type="password" class="input-field w-full rounded-xl bg-bg/40 border border-border px-3 py-2 pr-11 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="••••••••" />
+                    <button id="togglePw" type="button" class="password-toggle" aria-label="Show password" aria-pressed="false">
+                      <!-- Eye icon (password hidden) -->
+                      <svg id="iconEye" class="pw-icon pw-icon-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      <!-- Eye slash icon (password visible) -->
+                      <svg id="iconEyeSlash" class="pw-icon pw-icon-slash hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M17.94 17.94C16.23 19.24 14.21 20 12 20C5.5 20 2 13 2 13C3.07 10.94 4.78 9.22 6.76 8.12M9.9 4.24C10.59 4.09 11.29 4 12 4C18.5 4 22 11 22 11C21.39 12.18 20.58 13.25 19.66 14.17M14.12 14.12C13.79 14.45 13.42 14.71 13 14.89M9.88 9.88L14.12 14.12M9.88 9.88C9.55 10.21 9.29 10.58 9.11 11M14.12 14.12L9.88 9.88M3 3L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
                     </button>
                   </div>
                   <div id="pwErr" class="mt-1 text-sm text-danger hidden"></div>
@@ -147,7 +158,7 @@
 
                 <div id="fullNameWrap" class="hidden">
                   <label class="text-sm text-text-dim">Full Name</label>
-                  <input id="fullName" type="text" class="mt-1 w-full rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Analyst Name" />
+                  <input id="fullName" type="text" class="input-field mt-1 w-full rounded-xl bg-bg/40 border border-border px-3 py-2 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Analyst Name" />
                   <div id="nameErr" class="mt-1 text-sm text-danger hidden"></div>
                 </div>
 
@@ -172,7 +183,7 @@
 
               <div id="authToast" class="mt-4 hidden rounded-xl border border-border bg-surface-2 p-3 text-sm text-text-dim"></div>
 
-              <button id="authSubmit" type="submit" class="mt-5 w-full rounded-2xl bg-accent text-bg font-semibold px-4 py-3 hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-cyan-400">
+              <button id="authSubmit" type="submit" class="btn-primary mt-5 w-full rounded-2xl bg-accent text-bg font-semibold px-4 py-3 hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-cyan-400">
                 Continue
               </button>
 
@@ -186,15 +197,22 @@
       </section>
 
       <!-- SCREEN 2: SCAN CONSOLE -->
-      <section id="screen2" class="screen hidden">
-        <div class="bg-surface rounded-2xl border border-border shadow-panel p-6 sm:p-8">
+      <section id="screen2" class="screen screen-enter hidden">
+        <div class="glass-card rounded-2xl border border-border shadow-panel p-6 sm:p-8 card-hover">
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h2 class="font-heading text-2xl">ShieldAI Assistant</h2>
+              <!-- Branded header: Shield (yellow) + AI (white) + Assistant (cyan) -->
+              <h2 class="font-heading text-2xl sm:text-3xl flex items-center gap-2 flex-wrap">
+                <svg class="shield-header-icon shrink-0" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12 2L20 6V12C20 17 16.5 20.5 12 22C7.5 20.5 4 17 4 12V6L12 2Z" stroke="#FFD700" stroke-width="2"/>
+                  <path d="M8.5 12.2L10.8 14.5L15.6 9.7" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span><span class="text-[#FFD700]">Shield</span><span class="text-white">AI</span> <span class="text-[#22D3EE]">Assistant</span></span>
+              </h2>
               <p class="text-text-dim text-sm mt-1">Paste a suspicious link, email text, or upload a screenshot — I&apos;ll analyze it for phishing risk.</p>
             </div>
             <div class="flex items-center gap-3">
-              <div class="rounded-xl border border-border bg-surface-2 px-3 py-2">
+              <div class="rounded-xl border border-border bg-surface-2/80 px-3 py-2 neon-border">
                 <div class="text-xs text-text-dim">session</div>
                 <div class="font-mono text-sm">LOCAL-ANALYZER</div>
               </div>
@@ -202,71 +220,64 @@
           </div>
 
           <div class="mt-6 border-t border-border pt-6">
-            <!-- Tabs -->
-            <div class="flex flex-wrap gap-2" role="tablist" aria-label="Input modes">
-              <button class="mode-tab px-4 py-2 rounded-xl border border-border bg-surface-2 text-text-dim hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400" data-mode="url" aria-selected="true">URL</button>
-              <button class="mode-tab px-4 py-2 rounded-xl border border-border bg-surface-2 text-text-dim hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400" data-mode="text" aria-selected="false">Email/Message text</button>
-              <button class="mode-tab px-4 py-2 rounded-xl border border-border bg-surface-2 text-text-dim hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400" data-mode="image" aria-selected="false">Screenshot</button>
-            </div>
-
             <!-- Chat area -->
-            <div class="mt-6">
+            <div>
               <div id="chatLog" class="space-y-4">
                 <div class="flex">
                   <div class="max-w-xl">
-                    <div class="inline-flex items-center rounded-2xl border border-border bg-surface-2 px-4 py-2 text-sm">
-                      <span class="text-text-dim">&nbsp;</span>
+                    <div class="inline-flex items-center rounded-2xl border border-border bg-surface-2/80 px-4 py-2 text-sm chat-bubble">
                       <span class="text-sm text-text">Paste content and press <span class="text-accent font-semibold">Analyze</span>. I&apos;ll return a risk verdict.</span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Input composer -->
+              <!-- Unified Smart Upload Section -->
               <div class="mt-6">
-                <!-- URL input -->
-                <div id="modeUrl" class="mode-panel">
-                  <label class="text-sm text-text-dim">Suspicious URL</label>
-                  <input id="urlInput" type="text" class="mt-1 w-full rounded-2xl bg-bg/40 border border-border px-4 py-3 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="https://example.xyz/login?verify=1" />
-                  <div class="mt-2 text-xs text-text-dim font-mono">Tip: include domain, path, and query string.</div>
+                <!-- Auto-detected input type badge -->
+                <div id="detectedTypeBadge" class="detected-badge hidden mb-3">
+                  <span class="detected-dot"></span>
+                  <span id="detectedTypeText">Message Detected</span>
                 </div>
 
-                <!-- Text input -->
-                <div id="modeText" class="mode-panel hidden">
-                  <label class="text-sm text-text-dim">Email / Message</label>
-                  <textarea id="textInput" rows="5" class="mt-1 w-full rounded-2xl bg-bg/40 border border-border px-4 py-3 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400" placeholder="Dear Customer... verify your account immediately..."></textarea>
-                  <div class="mt-2 text-xs text-text-dim font-mono">Paste the full message body for best signals.</div>
-                </div>
-
-                <!-- Image input -->
-                <div id="modeImage" class="mode-panel hidden">
-                  <label class="text-sm text-text-dim">Drag & drop screenshot</label>
-                  <div id="dropZone" class="mt-2 rounded-2xl border border-border border-dashed bg-bg/30 p-6 flex flex-col items-center justify-center gap-2">
-                    <div class="text-accent">＋</div>
-                    <div class="text-text text-sm">Click to upload or drag a file here</div>
-                    <div class="text-xs text-text-dim">PNG/JPG/WebP • OCR simulated in this demo</div>
-                    <input id="fileInput" type="file" accept="image/*" class="hidden" />
+                <div id="smartUploadBox" class="smart-upload-box rounded-2xl border border-border border-dashed bg-bg/30 p-5 sm:p-6 transition-all">
+                  <!-- Text / URL input area -->
+                  <div id="textInputArea">
+                    <label class="text-sm text-text-dim font-medium">Smart Input</label>
+                    <textarea id="smartInput" rows="5" class="input-field mt-2 w-full rounded-xl bg-surface-2/50 border border-border/60 px-4 py-3 text-text placeholder:text-text-dim focus:outline-none focus:ring-2 focus:ring-cyan-400/60 resize-none font-mono text-sm" placeholder="Paste a URL, email message, or drag &amp; drop a screenshot here…&#10;&#10;https://example.xyz/login&#10;or paste suspicious email text"></textarea>
                   </div>
 
-                  <div id="imagePreviewWrap" class="mt-4 hidden">
-                    <div class="flex items-center justify-between">
-                      <div class="text-sm text-text-dim">Preview</div>
-                      <button id="clearImage" type="button" class="rounded-xl border border-border bg-surface-2 px-3 py-1.5 text-xs text-text-dim hover:text-text hover:border-accent focus:outline-none focus:ring-2 focus:ring-cyan-400">Remove</button>
+                  <!-- Image preview (shown when screenshot uploaded) -->
+                  <div id="imagePreviewWrap" class="hidden mt-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="text-sm text-text-dim font-medium">Screenshot Preview</div>
+                      <button id="clearImage" type="button" class="btn-ghost rounded-xl border border-border bg-surface-2 px-3 py-1.5 text-xs text-text-dim hover:text-text hover:border-accent focus:outline-none focus:ring-2 focus:ring-cyan-400">Remove</button>
                     </div>
-                    <div class="mt-2 rounded-xl border border-border bg-surface-2 p-3 inline-block">
-                      <img id="imagePreview" class="w-40 h-24 object-cover rounded-lg" alt="preview" />
+                    <div class="rounded-xl border border-border bg-surface-2/80 p-3 inline-block neon-border">
+                      <img id="imagePreview" class="w-full max-w-xs sm:max-w-sm h-32 sm:h-40 object-cover rounded-lg" alt="Screenshot preview" />
                     </div>
+                  </div>
+
+                  <!-- Upload actions -->
+                  <div class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-border/50">
+                    <div class="flex items-center gap-2 text-xs text-text-dim">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="text-accent shrink-0" aria-hidden="true">
+                        <path d="M12 16V4M12 4L8 8M12 4L16 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 17V19C4 20.1 4.9 21 6 21H18C19.1 21 20 20.1 20 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                      <span>Drag &amp; drop screenshot or browse to upload</span>
+                    </div>
+                    <button id="browseBtn" type="button" class="btn-ghost shrink-0 rounded-xl border border-accent/40 bg-accent/10 px-4 py-2 text-sm text-accent font-medium hover:bg-accent/20 hover:border-accent focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                      Browse Files
+                    </button>
+                    <input id="fileInput" type="file" accept="image/*" class="hidden" />
                   </div>
                 </div>
 
                 <div class="mt-5 flex items-center gap-3">
-                  <button id="analyzeBtn" type="button" disabled class="flex-1 rounded-2xl bg-accent/20 text-accent font-semibold px-4 py-3 border border-accent/30 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyan-400">
+                  <button id="analyzeBtn" type="button" disabled class="btn-analyze flex-1 rounded-2xl bg-accent/20 text-accent font-semibold px-4 py-3 border border-accent/30 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-cyan-400">
                     Analyze
                   </button>
-                  <div id="analyzingIndicator" class="hidden items-center gap-2 text-text-dim font-mono">
-                    <span class="scan-sweep w-2.5 h-2.5 rounded-full bg-accent"></span>
-                    <span>scan…</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -275,8 +286,8 @@
       </section>
 
       <!-- SCREEN 3: RESULT -->
-      <section id="screen3" class="screen hidden">
-        <div class="bg-surface rounded-2xl border border-border shadow-panel p-6 sm:p-8">
+      <section id="screen3" class="screen screen-enter hidden">
+        <div class="glass-card rounded-2xl border border-border shadow-panel p-6 sm:p-8 card-hover">
           <div id="verdictTop" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-center gap-3">
               <div id="verdictIcon" class="w-11 h-11 rounded-2xl flex items-center justify-center border"></div>
@@ -291,7 +302,7 @@
                 <div id="scorePct" class="font-mono text-4xl font-bold">0%</div>
                 <div class="w-48 sm:w-64">
                   <div class="h-2 rounded-full bg-border/60 overflow-hidden">
-                    <div id="scoreBar" class="h-full w-0"></div>
+                    <div id="scoreBar" class="h-full w-0 score-bar-fill"></div>
                   </div>
                 </div>
               </div>
@@ -299,7 +310,7 @@
           </div>
 
           <div class="mt-6 border-t border-border pt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="rounded-2xl bg-surface-2 border border-border p-5">
+            <div class="result-card rounded-2xl bg-surface-2/80 border border-border p-5">
               <div class="flex items-center justify-between">
                 <h3 class="font-heading text-lg">System Analysis</h3>
                 <div class="text-xs text-text-dim font-mono">heuristics_v1</div>
@@ -307,7 +318,7 @@
               <div id="reasonsList" class="mt-4 space-y-3"></div>
             </div>
 
-            <div class="rounded-2xl bg-surface-2 border border-border p-5">
+            <div class="result-card rounded-2xl bg-surface-2/80 border border-border p-5">
               <div class="flex items-center justify-between">
                 <h3 class="font-heading text-lg">Extracted Text (OCR/Sim)</h3>
                 <div id="ocrTag" class="text-xs text-text-dim font-mono">—</div>
@@ -320,8 +331,8 @@
           </div>
 
           <div class="mt-6 flex flex-col sm:flex-row gap-3">
-            <button id="scanAnother" class="flex-1 rounded-2xl bg-surface-2 border border-border px-4 py-3 text-text font-semibold hover:border-accent hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400">Scan Another</button>
-            <button id="downloadReport" class="flex-1 rounded-2xl bg-accent px-4 py-3 text-bg font-semibold hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-cyan-400">Download Report</button>
+            <button id="scanAnother" class="btn-ghost flex-1 rounded-2xl bg-surface-2 border border-border px-4 py-3 text-text font-semibold hover:border-accent hover:text-text focus:outline-none focus:ring-2 focus:ring-cyan-400">Scan Another</button>
+            <button id="downloadReport" class="btn-primary flex-1 rounded-2xl bg-accent px-4 py-3 text-bg font-semibold hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-cyan-400">Download Report</button>
           </div>
 
           <div id="resultToast" class="mt-4 hidden rounded-xl border border-border bg-bg/30 p-3 text-sm text-text-dim"></div>
@@ -331,11 +342,66 @@
     </main>
 
     <!-- Toast placeholder used by links -->
-    <div id="globalToast" class="fixed bottom-5 left-1/2 -translate-x-1/2 hidden z-50 max-w-xl w-[92vw] rounded-2xl border border-border bg-surface-2 px-4 py-3 text-sm text-text-dim shadow-panel"></div>
+    <div id="globalToast" class="fixed bottom-5 left-1/2 -translate-x-1/2 hidden z-50 max-w-xl w-[92vw] rounded-2xl border border-border bg-surface-2/95 backdrop-blur-md px-4 py-3 text-sm text-text-dim shadow-panel toast-slide"></div>
+  </div>
+
+  <!-- Fullscreen Cyber Analysis Animation Overlay -->
+  <div id="analysisOverlay" class="analysis-overlay hidden" aria-hidden="true" role="dialog" aria-label="Analyzing threat">
+    <!-- Matrix rain background -->
+    <div class="matrix-rain" aria-hidden="true">
+      <div class="matrix-col"></div>
+      <div class="matrix-col"></div>
+      <div class="matrix-col"></div>
+      <div class="matrix-col"></div>
+      <div class="matrix-col"></div>
+      <div class="matrix-col"></div>
+      <div class="matrix-col"></div>
+      <div class="matrix-col"></div>
+    </div>
+
+    <!-- Radar scan effect -->
+    <div class="radar-container" aria-hidden="true">
+      <div class="radar-ring radar-ring-1"></div>
+      <div class="radar-ring radar-ring-2"></div>
+      <div class="radar-ring radar-ring-3"></div>
+      <div class="radar-sweep"></div>
+    </div>
+
+    <!-- Scanning laser -->
+    <div class="scan-laser" aria-hidden="true"></div>
+
+    <!-- Main content -->
+    <div class="analysis-content">
+      <!-- Rotating shield logo -->
+      <div class="analysis-shield-wrap">
+        <div class="analysis-shield-glow"></div>
+        <svg class="analysis-shield-logo" width="72" height="72" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M12 2L20 6V12C20 17 16.5 20.5 12 22C7.5 20.5 4 17 4 12V6L12 2Z" stroke="#FFD700" stroke-width="1.5"/>
+          <path d="M8.5 12.2L10.8 14.5L15.6 9.7" stroke="#22D3EE" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="analysis-ring"></div>
+      </div>
+
+      <!-- Status message -->
+      <div id="analysisStatus" class="analysis-status font-heading">Analyzing Threat...</div>
+
+      <!-- Binary stream -->
+      <div class="binary-stream font-mono" aria-hidden="true">
+        <span>01001001 01101110 01101001 01110100</span>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="analysis-progress-wrap">
+        <div id="analysisProgressBar" class="analysis-progress-bar"></div>
+      </div>
+
+      <!-- AI thinking dots -->
+      <div class="ai-thinking" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
   </div>
 
   <script src="./app.js"></script>
 </body>
 </html>
-
-
