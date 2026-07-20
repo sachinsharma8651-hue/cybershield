@@ -17,7 +17,11 @@ const state = {
     lastResult: null
   }
 };
+// ==============================
+// Backend API Configuration
+// ==============================
 
+const API_BASE = "http://localhost:5000/api/users";
 const $ = (id) => document.getElementById(id);
 
 function showToast(message) {
@@ -452,6 +456,102 @@ function removeTyping() {
 /***********************
  * Wire up UI events
  ***********************/
+// =====================================
+// Authentication API Functions
+// =====================================
+
+// Signup API
+async function signupUser(name, email, password) {
+
+    try {
+
+        const response = await fetch(`${API_BASE}/signup`, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                name,
+                email,
+                password
+            })
+
+        });
+
+        const data = await response.json();
+
+        return data;
+
+    } catch (error) {
+
+        console.error("Signup Error:", error);
+
+        return {
+            success: false,
+            message: "Unable to connect to server."
+        };
+
+    }
+
+}
+
+
+// Login API
+async function loginUser(email, password) {
+
+    try {
+
+        const response = await fetch(`${API_BASE}/login`, {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                email,
+                password
+            })
+
+        });
+
+        const data = await response.json();
+
+        return data;
+
+    } catch (error) {
+
+        console.error("Login Error:", error);
+
+        return {
+            success: false,
+            message: "Unable to connect to server."
+        };
+
+    }
+
+}
+async function getProfile() {
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API_BASE}/profile`, {
+
+        method: "GET",
+
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+
+    });
+
+    return await response.json();
+
+}
 function wireAuth() {
   $('tabSignIn').addEventListener('click', () => setAuthTab('signin'));
   $('tabCreate').addEventListener('click', () => setAuthTab('create'));
@@ -493,53 +593,88 @@ function wireAuth() {
     showToast('Password reset is unavailable in this demo UI.');
   });
 
-  $('authForm').addEventListener('submit', (e) => {
+
+    $('authForm').addEventListener('submit', async (e) => {
+
     e.preventDefault();
 
     const ok = validateAuthForm();
+
     if (!ok) {
-      showToast('Fix the highlighted fields to continue.');
-      return;
+        showToast("Fix the highlighted fields to continue.");
+        return;
     }
 
     $('authSubmit').disabled = true;
     $('authLoading').classList.remove('hidden');
 
-    setTimeout(() => {
-      $('authSubmit').disabled = false;
-      $('authLoading').classList.add('hidden');
+    const email = $('email').value.trim();
+    const password = $('password').value.trim();
 
-      state.auth.user = {
-        email: $('email').value.trim(),
-        name: state.auth.mode === 'create' ? $('fullName').value.trim() : null
-      };
+    let response;
 
-      showScreen('screen2');
+    if (state.auth.mode === "create") {
 
-      state.chat.uploadedImage = null;
-      state.chat.uploadedImagePreviewUrl = null;
-      $('imagePreviewWrap').classList.add('hidden');
-      const smartInput = $('smartInput');
-      if (smartInput) smartInput.value = '';
-      $('fileInput').value = '';
+        const name = $('fullName').value.trim();
 
+        response = await signupUser(name, email, password);
 
-      $('chatLog').innerHTML = `
-            <div class="flex">
-              <div class="max-w-xl">
+    } else {
+
+        response = await loginUser(email, password);
+
+    }
+
+    $('authSubmit').disabled = false;
+    $('authLoading').classList.add('hidden');
+
+    if (!response.success) {
+
+        showToast(response.message || "Something went wrong.");
+        return;
+
+    }
+
+    localStorage.setItem("token", response.token);
+
+    state.auth.user = {
+        email,
+        name: state.auth.mode === "create"
+            ? $('fullName').value.trim()
+            : response.user?.name || ""
+    };
+
+    showScreen('screen2');
+
+    state.chat.uploadedImage = null;
+    state.chat.uploadedImagePreviewUrl = null;
+
+    $('imagePreviewWrap').classList.add('hidden');
+
+    const smartInput = $('smartInput');
+
+    if (smartInput) smartInput.value = '';
+
+    $('fileInput').value = '';
+
+    $('chatLog').innerHTML = `
+        <div class="flex">
+            <div class="max-w-xl">
                 <div class="inline-flex items-center rounded-2xl border border-border bg-surface-2 px-4 py-2 text-sm">
-                  <span class="text-text-dim">&nbsp;</span>
-                  <span class="text-sm text-text">Paste content and press <span class="text-accent font-semibold">Analyze</span>. I&apos;ll return a risk verdict.</span>
+                    <span class="text-text-dim">&nbsp;</span>
+                    <span class="text-sm text-text">
+                        Paste content and press
+                        <span class="text-accent font-semibold">Analyze</span>.
+                        I'll return a risk verdict.
+                    </span>
                 </div>
-              </div>
             </div>
-          `;
+        </div>
+    `;
 
-      // Analyze button wiring is handled inside wireScanConsole() using #smartInput + image state.
-
-    }, 650);
-  });
+});
 }
+
 
 function wireScanConsole() {
   const smartInput = $('smartInput');
