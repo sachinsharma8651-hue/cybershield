@@ -1,5 +1,6 @@
-const { isValidUrl } = require("../utils/urlUtils");
-
+const { isValidUrl, extractDomain } = require("../utils/urlUtils");
+const { getWhoisInfo } = require("./whoisService");
+const { getSSLInfo } = require("./sslService");
 const analyzeInput = async (input) => {
 
     let type = "text";
@@ -18,8 +19,14 @@ const analyzeInput = async (input) => {
 };
 
     if (type === "url") {
+        const domain = extractDomain(input);
+        const whoisInfo = await getWhoisInfo(domain);
+        const sslInfo = await getSSLInfo(domain);
 
     result.usesHTTPS = input.startsWith("https://");
+    result.domain = domain;
+    result.whois = whoisInfo;
+    result.ssl = sslInfo;
     result.isSecure = result.usesHTTPS;
 
     if (result.usesHTTPS) {

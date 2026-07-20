@@ -18,7 +18,9 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.4",
-    "multer": "^2.2.0"
+    "multer": "^2.2.0",
+    "ssl-checker": "^3.0.1",
+    "whois-json": "^2.0.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
