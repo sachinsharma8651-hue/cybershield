@@ -51,16 +51,29 @@ const getSSLInfo = async (domain) => {
                 }
             }
         );
+        socket.setTimeout(5000, () => {
+    socket.destroy();
 
-        socket.on("error", () => {
-            resolve({
-                valid: false,
-                validFrom: "Unknown",
-                validTo: "Unknown",
-                daysRemaining: 0,
-                issuer: "Unknown"
-            });
-        });
+    resolve({
+        valid: false,
+        validFrom: "Unknown",
+        validTo: "Unknown",
+        daysRemaining: 0,
+        issuer: "Unknown",
+        error: "Connection timeout"
+    });
+});
+
+       socket.on("error", (err) => {
+    resolve({
+        valid: false,
+        validFrom: "Unknown",
+        validTo: "Unknown",
+        daysRemaining: 0,
+        issuer: "Unknown",
+        error: err.message
+    });
+});
     });
 };
 
