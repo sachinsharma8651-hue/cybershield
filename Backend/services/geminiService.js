@@ -7,61 +7,62 @@ const ai = new GoogleGenAI({
 async function analyzeScamText(text) {
   try {
     const prompt = `
-Analyze this URL:
+Analyze this URL/Text for potential safety threats or scams:
 
-${text}
+"${text}"
 
-Return ONLY JSON:
-
+Return ONLY valid JSON matching this structure:
 {
   "isScam": false,
   "risk": "Low",
   "confidence": 95,
-  "reason": "Short reason"
+  "reason": "Short explanation"
 }
 `;
-   const response = await ai.models.generateContent({
-  model: "gemini-3-flash-preview",
-  contents: prompt,
-  config: {
-    temperature: 0.2,
-    maxOutputTokens: 300,
-  },
-});
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
+        temperature: 0.2,
+        maxOutputTokens: 1000, // 👈 1000 Tokens ताकि रिस्पॉन्स अधूरा न कटे
+        responseMimeType: "application/json", // 👈 Gemini को Strict JSON लौटाने के लिए मजबूर करता है
+      },
+    });
 
     let output = response.text || "";
 
-    // Remove markdown code fences if present
+    console.log("========== GEMINI RAW RESPONSE ==========");
+    console.log(output);
+    console.log("=========================================");
+
+    // Clean potential markdown tags or leftover quotes
     output = output
       .replace(/```json/gi, "")
       .replace(/```/g, "")
       .trim();
-      console.log("========== GEMINI RAW RESPONSE ==========");
-console.log(output);
-console.log("=========================================");
 
     return JSON.parse(output);
 
   } catch (error) {
-  console.error("Gemini Error:", error);
+    console.error("Gemini Error:", error);
 
-  let message = error.message;
+    let message = error.message;
 
-  try {
-    const parsed = JSON.parse(error.message);
-    message = parsed.error?.message || error.message;
-  } catch {
-    // अगर error.message JSON नहीं है,
-    // तो original message ही use होगा
+    try {
+      const parsed = JSON.parse(error.message);
+      message = parsed.error?.message || error.message;
+    } catch {
+      // Keep original message if it's not JSON
+    }
+
+    return {
+      isScam: false,
+      risk: "Unknown",
+      confidence: 0,
+      reason: message,
+    };
   }
-
-  return {
-    isScam: false,
-    risk: "Unknown",
-    confidence: 0,
-    reason: message,
-  };
-}
 }
 
 module.exports = {
