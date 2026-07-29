@@ -316,7 +316,14 @@ function escapeHtml(str) {
 
 function renderResult(result) {
   state.analysis.lastResult = result;
-  const meta = verdictMeta(result.verdict);
+  const score = result.riskScore ?? result.score ?? 0;
+
+const verdict =
+    score >= 70 ? "danger" :
+    score >= 40 ? "warning" :
+    "safe";
+
+const meta = verdictMeta(verdict);
 
   $('verdictLabel').textContent = meta.label;
   $('verdictSub').textContent = 'Heuristic scan complete — signals aggregated locally.';
@@ -325,11 +332,16 @@ function renderResult(result) {
   iconBox.innerHTML = `<span class="text-2xl">${meta.icon}</span>`;
   iconBox.className = 'w-11 h-11 rounded-2xl flex items-center justify-center border text-' + meta.color;
 
-  $('scorePct').textContent = result.score + '%';
+  $('scorePct').textContent = score + '%';
   const bar = $('scoreBar');
-  bar.style.width = result.score + '%';
-  bar.className = 'h-full ' + (result.verdict === 'safe' ? 'bg-safe' : result.verdict === 'warning' ? 'bg-warning' : 'bg-danger');
-
+  bar.style.width = score + '%';
+ bar.className =
+    'h-full ' +
+    (verdict === 'safe'
+        ? 'bg-safe'
+        : verdict === 'warning'
+        ? 'bg-warning'
+        : 'bg-danger');
   const list = $('reasonsList');
   list.innerHTML = '';
   (result.reasons || []).slice(0, 8).forEach((r) => {
