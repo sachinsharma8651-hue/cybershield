@@ -813,7 +813,7 @@ function wireScanConsole() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-            "https://cybershield-production-64c0.up.railway.app/api/scan",
+            "https://cybershield-production-64c0.up.railway.app/api/scan/analyze",
             {
                 method: "POST",
                 headers: {
@@ -821,7 +821,7 @@ function wireScanConsole() {
                     Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    url: content
+                    input: content
                 })
             }
         );
@@ -832,7 +832,7 @@ function wireScanConsole() {
         analyzeBtn.disabled = false;
         setOverlayActive(false);
 
-        renderResult(result);
+        renderResult(result.result);
 
         showScreen("screen3");
 

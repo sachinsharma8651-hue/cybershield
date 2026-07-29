@@ -76,8 +76,49 @@ const analyzeInput = async (input) => {
 
         result.isSecure = result.usesHTTPS;
 
-        // Overall Risk Score
-        result.riskScore = phishingAnalysis.phishingScore;
+        // ===============================
+// Overall Risk Score Calculation
+// ===============================
+
+let riskScore = 0;
+
+// Phishing Heuristic
+riskScore += phishingAnalysis.phishingScore;
+
+// HTTPS
+if (!result.usesHTTPS) {
+    riskScore += 15;
+}
+
+// SSL
+if (sslInfo && sslInfo.valid === false) {
+    riskScore += 15;
+}
+
+// Domain Age
+if (
+    domainAge &&
+    domainAge.ageInDays !== null &&
+    domainAge.ageInDays < 180
+) {
+    riskScore += 15;
+}
+
+// VirusTotal
+if (virusTotal) {
+    riskScore += virusTotal.malicious * 10;
+    riskScore += virusTotal.suspicious * 5;
+}
+
+// Gemini AI
+if (aiAnalysis && aiAnalysis.isScam) {
+    riskScore += 30;
+}
+
+// Maximum 100
+riskScore = Math.min(riskScore, 100);
+
+result.riskScore = riskScore;
 
         if (result.usesHTTPS) {
             result.message = "Secure HTTPS URL detected.";
