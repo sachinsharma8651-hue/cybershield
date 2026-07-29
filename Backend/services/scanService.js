@@ -83,7 +83,7 @@ const analyzeInput = async (input) => {
 let riskScore = 0;
 
 // Phishing Heuristic
-riskScore += phishingAnalysis.phishingScore;
+riskScore += phishingAnalysis.phishingScore + 10;
 
 // HTTPS
 if (!result.usesHTTPS) {
@@ -106,13 +106,13 @@ if (
 
 // VirusTotal
 if (virusTotal) {
-    riskScore += virusTotal.malicious * 10;
-    riskScore += virusTotal.suspicious * 5;
+    riskScore += virusTotal.malicious * 20;
+    riskScore += virusTotal.suspicious * 10;
 }
 
 // Gemini AI
 if (aiAnalysis && aiAnalysis.isScam) {
-    riskScore += 30;
+    riskScore += 40;
 }
 
 // Maximum 100
