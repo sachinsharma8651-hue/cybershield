@@ -14,6 +14,13 @@ const protect = require("../middleware/authMiddleware");
 router.post("/signup", signup);
 router.post("/login", login);
 
+router.get("/test", (req, res) => {
+    res.json({
+        success: true,
+        message: "User Route Working Successfully"
+    });
+});
+
 // ======================
 // Protected Route
 // ======================

@@ -12,6 +12,7 @@ const { analyzePhishing } = require("./phishingService");
 const { checkVirusTotal } = require("./virusTotalService");
 const { analyzeScamText } = require("./geminiService");
 
+
 const analyzeInput = async (input) => {
 
     let type = "text";

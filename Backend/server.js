@@ -6,7 +6,7 @@ const cors = require("cors");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const scanRoutes = require("./routes/scanRoutes");
-
+const historyRoutes = require("./routes/historyRoutes");
 
 connectDB();
 
@@ -29,6 +29,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/scan", scanRoutes);
+app.use("/api/history", historyRoutes);
 
 const PORT = process.env.PORT || 5000;
 
