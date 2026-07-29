@@ -806,15 +806,49 @@ function wireScanConsole() {
     const payload = { type: mode, content };
     state.analysis.lastInput = payload;
 
-    setTimeout(() => {
-      const result = analyzeInput(mode, content);
-      removeTyping();
-      analyzeBtn.disabled = false;
-      setOverlayActive(false);
+    (async () => {
 
-      renderResult(result);
-      showScreen('screen3');
-    }, 1300);
+    try {
+
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+            "https://cybershield-production-64c0.up.railway.app/api/scan",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    url: content
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        removeTyping();
+        analyzeBtn.disabled = false;
+        setOverlayActive(false);
+
+        renderResult(result);
+
+        showScreen("screen3");
+
+    } catch (err) {
+
+        removeTyping();
+        analyzeBtn.disabled = false;
+        setOverlayActive(false);
+
+        showToast("Unable to connect to Scan API");
+
+        console.error(err);
+
+    }
+
+})();
   });
 
   updateAnalyzeEnabledLocal();
