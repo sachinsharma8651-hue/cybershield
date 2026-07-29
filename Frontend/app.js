@@ -21,7 +21,7 @@ const state = {
 // Backend API Configuration
 // ==============================
 
-const API_BASE = "http://localhost:5000/api/users";
+const API_BASE = "https://cybershield-production-64c0.up.railway.app/api/users";
 const $ = (id) => document.getElementById(id);
 
 function showToast(message) {
