@@ -3,6 +3,6 @@ const router = express.Router();
 
 const { analyzeScan } = require("../controllers/scanController");
 const protect = require("../middleware/authMiddleware");
-router.post("/analyze", protect, analyzeScan);
+router.post("/analyze", analyzeScan);
 
 module.exports = router;

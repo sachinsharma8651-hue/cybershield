@@ -33,8 +33,23 @@ function showToast(message) {
 }
 
 function showScreen(id) {
-  ['screen1', 'screen2', 'screen3'].forEach((s) => $(s).classList.add('hidden'));
-  $(id).classList.remove('hidden');
+
+  ['screen1', 'screen2', 'screen3', 'screen4'].forEach((s) => {
+
+    const screen = $(s);
+
+    if (screen) {
+      screen.classList.add('hidden');
+    }
+
+  });
+
+  const current = $(id);
+
+  if (current) {
+    current.classList.remove('hidden');
+  }
+
 }
 
 function setAuthTab(mode) {
@@ -317,13 +332,8 @@ function escapeHtml(str) {
 function renderResult(result) {
   state.analysis.lastResult = result;
   const score = result.riskScore ?? result.score ?? 0;
-
-const verdict =
-    score >= 70 ? "danger" :
-    score >= 40 ? "warning" :
-    "safe";
-
-const meta = verdictMeta(verdict);
+result.score = score;
+  const meta = verdictMeta(result.verdict);
 
   $('verdictLabel').textContent = meta.label;
   $('verdictSub').textContent = 'Heuristic scan complete — signals aggregated locally.';
@@ -332,16 +342,11 @@ const meta = verdictMeta(verdict);
   iconBox.innerHTML = `<span class="text-2xl">${meta.icon}</span>`;
   iconBox.className = 'w-11 h-11 rounded-2xl flex items-center justify-center border text-' + meta.color;
 
-  $('scorePct').textContent = score + '%';
+ $('scorePct').textContent = score + '%';
   const bar = $('scoreBar');
-  bar.style.width = score + '%';
- bar.className =
-    'h-full ' +
-    (verdict === 'safe'
-        ? 'bg-safe'
-        : verdict === 'warning'
-        ? 'bg-warning'
-        : 'bg-danger');
+ bar.style.width = score + '%';
+  bar.className = 'h-full ' + (result.verdict === 'safe' ? 'bg-safe' : result.verdict === 'warning' ? 'bg-warning' : 'bg-danger');
+
   const list = $('reasonsList');
   list.innerHTML = '';
   (result.reasons || []).slice(0, 8).forEach((r) => {
@@ -686,7 +691,124 @@ function wireAuth() {
 
 });
 }
+/**
+ * Clean OCR text by normalizing whitespace and punctuation
+ * while preserving URLs, email addresses, and numbers.
+ */
+function cleanOCRText(text) {
 
+    if (!text || typeof text !== "string") return "";
+
+    const preserved = [];
+    const PLACEHOLDER_PREFIX = "___OCR_PRESERVE_";
+
+    // Preserve URLs
+    let cleaned = text.replace(
+        /(https?:\/\/[^\s"'<>{}|\\^`[\]]+)/gi,
+        (match) => {
+            const idx = preserved.length;
+            preserved.push(match);
+            return `${PLACEHOLDER_PREFIX}${idx}___`;
+        }
+    );
+
+    // Preserve emails
+    cleaned = cleaned.replace(
+        /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi,
+        (match) => {
+            const idx = preserved.length;
+            preserved.push(match);
+            return `${PLACEHOLDER_PREFIX}${idx}___`;
+        }
+    );
+
+    // Preserve numbers
+    cleaned = cleaned.replace(
+        /\b\d+[\.,]?\d*%?\b/g,
+        (match) => {
+            const idx = preserved.length;
+            preserved.push(match);
+            return `${PLACEHOLDER_PREFIX}${idx}___`;
+        }
+    );
+
+    // Normalize spaces
+    cleaned = cleaned.replace(/[ \t]+/g, " ");
+
+    // Normalize newlines
+    cleaned = cleaned.replace(/\r\n/g, "\n");
+    cleaned = cleaned.replace(/\r/g, "\n");
+    cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
+
+    // Remove repeated punctuation
+    cleaned = cleaned.replace(/([!?]){2,}/g, "$1");
+    cleaned = cleaned.replace(/([.,;:]){2,}/g, "$1");
+    cleaned = cleaned.replace(/(?<!\w)([-_]){2,}(?!\w)/g, "$1");
+
+    // Ensure space after period
+    cleaned = cleaned.replace(/\.([A-Z])/g, ". $1");
+
+    // Restore preserved tokens
+    cleaned = cleaned.replace(
+        /___OCR_PRESERVE_(\d+)___/g,
+        (_, num) => preserved[parseInt(num, 10)] || ""
+    );
+
+    return cleaned.trim();
+}
+
+/**
+ * Extract text from image using Tesseract OCR
+ */
+async function extractTextFromImage(file) {
+
+    try {
+
+        showToast("Running OCR...");
+
+        const {
+            data
+        } = await Tesseract.recognize(
+            file,
+            "eng",
+            {
+                logger: (m) => {
+
+                    if (m.status === "recognizing text") {
+
+                        const progress = Math.round((m.progress || 0) * 100);
+
+                        console.log("OCR Progress:", progress + "%");
+
+                    }
+
+                }
+            }
+        );
+
+        const confidence = Math.round(data.confidence || 0);
+
+        console.log("OCR Confidence:", confidence + "%");
+
+        state.analysis.ocrConfidence = confidence;
+
+        const cleanedText = cleanOCRText(data.text || "");
+
+        console.log("OCR Text:", cleanedText);
+
+        return cleanedText;
+
+    } catch (err) {
+
+        console.error("OCR Error:", err);
+
+        showToast("OCR failed.");
+
+        return "";
+
+    }
+
+}
 
 function wireScanConsole() {
   const smartInput = $('smartInput');
@@ -793,7 +915,7 @@ function wireScanConsole() {
     return looksUrl ? 'url' : 'text';
   }
 
-  analyzeBtn.addEventListener('click', () => {
+  analyzeBtn.addEventListener('click', async () => {
     const text = getTextContent();
     const hasImage = !!state.chat.uploadedImage;
 
@@ -802,10 +924,33 @@ function wireScanConsole() {
     let mode;
     let content;
     if (hasImage) {
-      mode = 'image';
-      content = state.chat.uploadedImage;
-      appendChatBubble('Screenshot uploaded (' + state.chat.uploadedImage.name + ')');
-    } else {
+
+    mode = "image";
+
+    appendChatBubble(
+        "Screenshot uploaded (" +
+        state.chat.uploadedImage.name +
+        ")"
+    );
+
+    const extractedText =
+        await extractTextFromImage(state.chat.uploadedImage);
+
+    if (!extractedText) {
+
+        showToast("No text detected in image.");
+
+        removeTyping();
+        analyzeBtn.disabled = false;
+        setOverlayActive(false);
+
+        return;
+
+    }
+
+    content = extractedText;
+
+} else {
       mode = detectTypeForText(text);
       content = text;
       appendChatBubble(text.slice(0, 220) + (text.length > 220 ? '…' : ''));
@@ -822,31 +967,60 @@ function wireScanConsole() {
 
     try {
 
-        const token = localStorage.getItem("token");
+       const token = localStorage.getItem("token");
 
-        const response = await fetch(
-            "https://cybershield-production-64c0.up.railway.app/api/scan/analyze",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    input: content
-                })
-            }
-        );
+const headers = {
+    "Content-Type": "application/json"
+};
 
-        const result = await response.json();
+if (token) {
+    headers.Authorization = `Bearer ${token}`;
+}
 
-        removeTyping();
-        analyzeBtn.disabled = false;
-        setOverlayActive(false);
+const response = await fetch(
+    "https://cybershield-production-64c0.up.railway.app/api/scan/analyze",
+    {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+            input: content,
+            inputType: mode
+        })
+    }
+);
 
-        renderResult(result.result);
+      
+       const responseData = await response.json();
 
-        showScreen("screen3");
+console.log("========== FULL API RESPONSE ==========");
+console.log(JSON.stringify(responseData, null, 2));
+console.log("=======================================");
+if (!response.ok || !responseData.success) {
+
+    removeTyping();
+    analyzeBtn.disabled = false;
+    setOverlayActive(false);
+
+    showToast(responseData.message || "Analysis failed.");
+
+    return;
+
+}
+if (mode === "image") {
+
+    responseData.result.extractedText = content;
+
+    responseData.result.ocrStatus = "SUCCESS";
+
+}
+
+removeTyping();
+analyzeBtn.disabled = false;
+setOverlayActive(false);
+
+renderResult(responseData.result);
+
+showScreen("screen3");
 
     } catch (err) {
 
@@ -910,19 +1084,217 @@ function wireResultScreen() {
     showScreen('screen2');
   });
 
-  $('downloadReport').addEventListener('click', () => {
+ $('downloadReport').addEventListener('click', () => {
 
-    const t = $('resultToast');
-    t.classList.remove('hidden');
-    t.textContent = 'Report download is a placeholder in this demo (no PDF generation).';
-    setTimeout(() => t.classList.add('hidden'), 2600);
-    showToast('Report download is a demo placeholder.');
-  });
+    const result = state.analysis.lastResult;
+
+    if (!result) {
+        showToast("No report available.");
+        return;
+    }
+
+    populateReport(result);
+
+    showScreen('screen4');
+
+});
+$('scanAgainFromReport').addEventListener('click', () => {
+
+    state.analysis.lastResult = null;
+    state.analysis.lastInput = null;
+
+    // Clear input
+    if ($('smartInput')) $('smartInput').value = '';
+
+    // Clear uploaded image
+    state.chat.uploadedImage = null;
+
+    if (state.chat.uploadedImagePreviewUrl) {
+        URL.revokeObjectURL(state.chat.uploadedImagePreviewUrl);
+        state.chat.uploadedImagePreviewUrl = null;
+    }
+
+    if ($('imagePreview')) $('imagePreview').src = "";
+
+    if ($('imagePreviewWrap'))
+        $('imagePreviewWrap').classList.add("hidden");
+
+    if ($('fileInput'))
+        $('fileInput').value = "";
+
+    showScreen('screen2');
+
+});
+$('backToResult').addEventListener('click', () => {
+
+    showScreen('screen3');
+
+});
 }
 
 /***********************
  * Init
  ***********************/
+function populateReport(result) {
+
+    const score = Number(result.riskScore || result.score || 0);
+
+    // --------------------------
+    // Basic Info
+    // --------------------------
+
+    document.getElementById("reportInput").textContent =
+        result.input || "-";
+
+    document.getElementById("reportTime").textContent =
+        new Date().toLocaleString();
+
+    document.getElementById("reportId").textContent =
+        "CS-" + Date.now();
+
+    // --------------------------
+    // Verdict
+    // --------------------------
+
+    let verdict = "Safe";
+    let badge = "LOW";
+    let threat = "Website appears safe.";
+
+    if (score >= 70) {
+        verdict = "Phishing / Not Safe";
+        badge = "HIGH";
+        threat = "High-risk website detected. Immediate action is recommended.";
+    }
+    else if (score >= 40) {
+        verdict = "Suspicious";
+        badge = "MEDIUM";
+        threat = "This website looks suspicious. Verify before continuing.";
+    }
+
+    document.getElementById("reportRiskScore").textContent = score + "%";
+    document.getElementById("reportVerdict").textContent = verdict;
+    document.getElementById("reportThreatBadge").textContent = badge;
+    document.getElementById("reportVerdictBadge").textContent = badge;
+    document.getElementById("reportThreatMessage").textContent = threat;
+
+    // --------------------------
+    // AI
+    // --------------------------
+
+    document.getElementById("reportAIReason").textContent =
+        result.aiAnalysis?.reason ||
+        "No AI analysis available.";
+
+    document.getElementById("reportAIVerdict").textContent =
+    result.aiAnalysis?.risk || verdict;
+
+   const aiConfidence =
+    result.aiAnalysis?.confidence ?? 95;
+
+document.getElementById("reportAIConfidence").textContent =
+    aiConfidence + "%";
+
+    // --------------------------
+    // VirusTotal
+    // --------------------------
+
+    const vt = result.virusTotal || {};
+
+    document.getElementById("reportVTMalicious").textContent =
+        vt.malicious ?? 0;
+
+    document.getElementById("reportVTSuspicious").textContent =
+        vt.suspicious ?? 0;
+
+    document.getElementById("reportVTHarmless").textContent =
+        vt.harmless ?? 0;
+
+    document.getElementById("reportVTUndetected").textContent =
+        vt.undetected ?? 0;
+
+    // --------------------------
+    // SSL
+    // --------------------------
+
+    const ssl = result.ssl || {};
+
+   document.getElementById("reportSSLStatus").textContent =
+    ssl.valid ? "Valid" : "Invalid";
+
+document.getElementById("reportSSLBadge").textContent =
+    ssl.valid ? "VALID" : "INVALID";
+
+document.getElementById("reportSSLIssuer").textContent =
+    ssl.issuer || "Unknown";
+
+document.getElementById("reportSSLExpiry").textContent =
+    ssl.validTo || "Unknown";
+    // --------------------------
+    // WHOIS
+    // --------------------------
+
+    const whois = result.whois || {};
+
+document.getElementById("reportRegistrar").textContent =
+    whois.registrar || "Unknown";
+
+document.getElementById("reportCountry").textContent =
+    whois.country || "Unknown";
+
+document.getElementById("reportOrganization").textContent =
+    whois.organization || "Unknown";
+
+document.getElementById("reportCreatedDate").textContent =
+    whois.creationDate || "Unknown";
+    // --------------------------
+    // Domain
+    // --------------------------
+
+   document.getElementById("reportDomainAge").textContent =
+    result.domainAge?.ageInYears || "Unknown";
+
+    document.getElementById("reportDomainRisk").textContent =
+        score >= 70 ? "High" :
+        score >= 40 ? "Medium" : "Low";
+
+    // --------------------------
+    // Risk Factors
+    // --------------------------
+
+    const box = document.getElementById("reportRiskFactors");
+
+    box.innerHTML = "";
+
+    const factors =
+        result.reasons ||
+        result.riskFactors ||
+        [];
+
+    if (!factors.length) {
+
+        box.innerHTML =
+            `<div class="rounded-xl bg-bg/30 border border-border p-4">
+                • No risk factors available.
+            </div>`;
+
+    } else {
+
+        factors.forEach(item => {
+
+            const div = document.createElement("div");
+
+            div.className =
+                "rounded-xl bg-bg/30 border border-border p-4";
+
+           div.textContent =
+    "• " + (item.text || item);
+            box.appendChild(div);
+
+        });
+
+    }
+
+}
 (function init() {
   wireAuth();
   wireScanConsole();

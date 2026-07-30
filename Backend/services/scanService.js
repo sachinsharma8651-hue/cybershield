@@ -15,6 +15,7 @@ const { analyzeScamText } = require("./geminiService");
 
 const analyzeInput = async (input) => {
 
+    console.log("******** NEW SCAN SERVICE VERSION ********");
     let type = "text";
 
     if (isValidUrl(input)) {
@@ -126,7 +127,7 @@ result.riskScore = riskScore;
             result.message = "Warning: URL is not using HTTPS.";
         }
 
-    } else {
+   } else {
 
     result.message = "Text detected.";
 
@@ -134,6 +135,57 @@ result.riskScore = riskScore;
 
     result.aiAnalysis = aiAnalysis;
 
+    // --------------------------
+    // OCR / Text Risk Calculation
+    // --------------------------
+    let riskScore = 0;
+
+    if (aiAnalysis) {
+
+        if (aiAnalysis.isScam) {
+
+            switch ((aiAnalysis.risk || "").toLowerCase()) {
+
+                case "high":
+                    riskScore = 90;
+                    break;
+
+                case "medium":
+                    riskScore = 60;
+                    break;
+
+                case "low":
+                    riskScore = 30;
+                    break;
+
+                default:
+                    riskScore = aiAnalysis.confidence || 70;
+            }
+
+            // confidence ke hisaab se adjust
+            if (aiAnalysis.confidence) {
+                riskScore = Math.max(
+                    riskScore,
+                    Math.min(aiAnalysis.confidence, 100)
+                );
+            }
+
+        } else {
+
+            riskScore = Math.max(
+                5,
+                aiAnalysis.confidence
+                    ? Math.round((100 - aiAnalysis.confidence) / 8)
+                    : 5
+            );
+
+        }
+
+    }
+
+    result.riskScore = Math.min(riskScore, 100);
+
+    result.isSecure = !aiAnalysis?.isScam;
 }
 
     return result;
