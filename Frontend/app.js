@@ -333,7 +333,17 @@ function renderResult(result) {
   state.analysis.lastResult = result;
   const score = result.riskScore ?? result.score ?? 0;
 result.score = score;
-  const meta = verdictMeta(result.verdict);
+  let verdict = result.verdict;
+
+if (!verdict) {
+
+    if (score >= 70) verdict = "danger";
+    else if (score >= 40) verdict = "warning";
+    else verdict = "safe";
+
+}
+
+const meta = verdictMeta(verdict);
 
   $('verdictLabel').textContent = meta.label;
   $('verdictSub').textContent = 'Heuristic scan complete — signals aggregated locally.';
@@ -345,7 +355,9 @@ result.score = score;
  $('scorePct').textContent = score + '%';
   const bar = $('scoreBar');
  bar.style.width = score + '%';
-  bar.className = 'h-full ' + (result.verdict === 'safe' ? 'bg-safe' : result.verdict === 'warning' ? 'bg-warning' : 'bg-danger');
+  bar.className =
+'h-full ' +
+(verdict === 'safe' ? 'bg-safe' : verdict === 'warning' ? 'bg-warning' : 'bg-danger');
 
   const list = $('reasonsList');
   list.innerHTML = '';
@@ -1133,11 +1145,13 @@ $('backToResult').addEventListener('click', () => {
 }
 
 /***********************
- * Init
+ * InitS
  ***********************/
 function populateReport(result) {
 
     const score = Number(result.riskScore || result.score || 0);
+
+    // baaki sara code yahi se start hoga   
 
     // --------------------------
     // Basic Info
@@ -1156,25 +1170,128 @@ function populateReport(result) {
     // Verdict
     // --------------------------
 
-    let verdict = "Safe";
-    let badge = "LOW";
-    let threat = "Website appears safe.";
+    let verdict;
+let badge;
+let threat;
 
-    if (score >= 70) {
-        verdict = "Phishing / Not Safe";
-        badge = "HIGH";
-        threat = "High-risk website detected. Immediate action is recommended.";
-    }
-    else if (score >= 40) {
-        verdict = "Suspicious";
-        badge = "MEDIUM";
-        threat = "This website looks suspicious. Verify before continuing.";
-    }
+const priorityBadge = document.getElementById("actionPriorityBadge");
+const immediateCard = document.getElementById("immediateActionCard");
+const avoidCard = document.getElementById("avoidActionsCard");
+
+if (score < 30) {
+
+    verdict = "Safe";
+    badge = "LOW";
+    threat = "Website appears safe.";
+
+    if (priorityBadge) priorityBadge.style.display = "none";
+    if (immediateCard) immediateCard.style.display = "none";
+    if (avoidCard) avoidCard.style.display = "none";
+
+}
+if (score < 30) {
+
+    if (priorityBadge) priorityBadge.style.display = "none";
+    if (immediateCard) immediateCard.style.display = "none";
+    if (avoidCard) avoidCard.style.display = "none";
+
+}
+else if (score < 70) {
+
+    verdict = "Suspicious";
+    badge = "MEDIUM";
+    threat = "Proceed with caution. Verify before continuing.";
+
+    if (priorityBadge) priorityBadge.style.display = "none";
+    if (immediateCard) immediateCard.style.display = "";
+    if (avoidCard) avoidCard.style.display = "none";
+
+}
+else {
+
+    verdict = "Phishing / Not Safe";
+    badge = "HIGH";
+    threat = "This website is likely phishing.";
+
+    if (priorityBadge) priorityBadge.style.display = "";
+    if (immediateCard) immediateCard.style.display = "";
+    if (avoidCard) avoidCard.style.display = "";
+
+}
+
+    
 
     document.getElementById("reportRiskScore").textContent = score + "%";
     document.getElementById("reportVerdict").textContent = verdict;
     document.getElementById("reportThreatBadge").textContent = badge;
+    const threatBadge = document.getElementById("reportThreatBadge");
+
+threatBadge.classList.remove(
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-red-500"
+);
+
+if (score < 30) {
+    threatBadge.classList.add("bg-green-500");
+}
+else if (score < 70) {
+    threatBadge.classList.add("bg-yellow-500");
+}
+else {
+    threatBadge.classList.add("bg-red-500");
+}
     document.getElementById("reportVerdictBadge").textContent = badge;
+   const verdictBadge = document.getElementById("reportVerdictBadge");
+
+verdictBadge.classList.remove(
+    "bg-green-500",
+    "bg-yellow-500",
+    "bg-red-500"
+);
+
+if (score < 30) {
+    verdictBadge.classList.add("bg-green-500");
+}
+else if (score < 70) {
+    verdictBadge.classList.add("bg-yellow-500");
+}
+else {
+    verdictBadge.classList.add("bg-red-500");
+}
+const levelBadge = document.getElementById("reportThreatLevelBadge");
+console.log("levelBadge =", levelBadge);
+console.log("score =", score);
+
+levelBadge.classList.remove(
+    "bg-danger/20",
+    "text-danger",
+    "bg-warning/20",
+    "text-warning",
+    "bg-safe/20",
+    "text-safe"
+);
+
+if (score < 30) {
+  console.log("LOW BLOCK");
+
+    levelBadge.textContent = "LOW";
+    levelBadge.classList.add("bg-safe/20", "text-safe");
+
+}
+else if (score < 70) {
+
+    levelBadge.textContent = "MEDIUM";
+    levelBadge.classList.add("bg-warning/20", "text-warning");
+
+}
+else {
+
+    levelBadge.textContent = "HIGH";
+    levelBadge.classList.add("bg-danger/20", "text-danger");
+
+}
+
     document.getElementById("reportThreatMessage").textContent = threat;
 
     // --------------------------
@@ -1293,8 +1410,8 @@ document.getElementById("reportCreatedDate").textContent =
         });
 
     }
+  }
 
-}
 (function init() {
   wireAuth();
   wireScanConsole();
