@@ -100,10 +100,11 @@ if (sslInfo && sslInfo.valid === false) {
     riskScore += 10;
 }
 
-// 4. Domain Age Component (Max weight: 15)
+// 4. Domain Age Component (Safe check for NaN/null)
 if (
     domainAge &&
-    domainAge.ageInDays !== null
+    domainAge.ageInDays !== null &&
+    !isNaN(domainAge.ageInDays)
 ) {
     if (domainAge.ageInDays < 30) {
         riskScore += 15;
