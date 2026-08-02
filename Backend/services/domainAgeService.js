@@ -18,11 +18,36 @@ const getDomainAge = async (domain) => {
         }
 
         const createdDate = new Date(created);
-        const now = new Date();
+        
+        // Check if date is valid
+        if (isNaN(createdDate.getTime())) {
+            return {
+                available: false,
+                message: "Invalid creation date format"
+            };
+        }
 
-        const ageInDays = Math.floor(
-            (now - createdDate) / (1000 * 60 * 60 * 24)
-        );
+        const now = new Date();
+        const diffTime = now - createdDate;
+        
+        // If date is in future or invalid difference
+        if (diffTime < 0) {
+            return {
+                available: false,
+                message: "Invalid date range"
+            };
+        }
+
+        const ageInDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (isNaN(ageInDays)) {
+            return {
+                available: false,
+                message: "Could not calculate age"
+            };
+        }
+
+        const ageInYears = (ageInDays / 365).toFixed(1);
 
         const ageInYears = (ageInDays / 365).toFixed(1);
 
