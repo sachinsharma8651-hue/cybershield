@@ -19,7 +19,6 @@ const getDomainAge = async (domain) => {
 
         const createdDate = new Date(created);
         
-        // Check if date is valid
         if (isNaN(createdDate.getTime())) {
             return {
                 available: false,
@@ -30,7 +29,6 @@ const getDomainAge = async (domain) => {
         const now = new Date();
         const diffTime = now - createdDate;
         
-        // If date is in future or invalid difference
         if (diffTime < 0) {
             return {
                 available: false,
@@ -46,8 +44,6 @@ const getDomainAge = async (domain) => {
                 message: "Could not calculate age"
             };
         }
-
-        const ageInYears = (ageInDays / 365).toFixed(1);
 
         const ageInYears = (ageInDays / 365).toFixed(1);
 
