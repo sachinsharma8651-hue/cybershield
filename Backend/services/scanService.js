@@ -78,48 +78,69 @@ const analyzeInput = async (input) => {
         result.isSecure = result.usesHTTPS;
 
         // ===============================
-// Overall Risk Score Calculation
+// Overall Risk Score Calculation (Updated)
 // ===============================
 
 let riskScore = 0;
 
-// Phishing Heuristic
-riskScore += phishingAnalysis.phishingScore + 10;
+// 1. Phishing Heuristic Component (Max weight: ~25)
+if (phishingAnalysis && phishingAnalysis.phishingScore) {
+    riskScore += Math.min(25, Math.round(phishingAnalysis.phishingScore * 0.5));
+}
 
-// HTTPS
+// 2. HTTPS Check (Max weight: 15)
 if (!result.usesHTTPS) {
     riskScore += 15;
 }
 
-// SSL
+// 3. SSL Certificate Component (Max weight: 15)
 if (sslInfo && sslInfo.valid === false) {
     riskScore += 15;
+} else if (sslInfo && sslInfo.isSelfSigned) {
+    riskScore += 10;
 }
 
-// Domain Age
+// 4. Domain Age Component (Max weight: 15)
 if (
     domainAge &&
-    domainAge.ageInDays !== null &&
-    domainAge.ageInDays < 180
+    domainAge.ageInDays !== null
 ) {
-    riskScore += 15;
+    if (domainAge.ageInDays < 30) {
+        riskScore += 15;
+    } else if (domainAge.ageInDays < 90) {
+        riskScore += 10;
+    } else if (domainAge.ageInDays < 180) {
+        riskScore += 5;
+    }
 }
 
-// VirusTotal
+// 5. VirusTotal Component (Max weight: 20)
 if (virusTotal) {
-    riskScore += virusTotal.malicious * 20;
-    riskScore += virusTotal.suspicious * 10;
+    const malicious = virusTotal.malicious || 0;
+    const suspicious = virusTotal.suspicious || 0;
+    if (malicious > 0) {
+        riskScore += Math.min(20, 10 + (malicious * 3));
+    } else if (suspicious > 0) {
+        riskScore += 8;
+    }
 }
 
-// Gemini AI
-if (aiAnalysis && aiAnalysis.isScam) {
-    riskScore += 40;
+// 6. Gemini AI Component (Max weight: 30)
+if (aiAnalysis) {
+    if (aiAnalysis.isScam || aiAnalysis.risk === 'High' || aiAnalysis.risk === 'danger') {
+        riskScore += 30;
+    } else if (aiAnalysis.risk === 'Medium' || aiAnalysis.risk === 'warning') {
+        riskScore += 15;
+    }
 }
 
-// Maximum 100
-riskScore = Math.min(riskScore, 100);
+// Final Bounded Clamping (Strictly between 0 and 100)
+riskScore = Math.max(0, Math.min(100, Math.round(riskScore)));
 
 result.riskScore = riskScore;
+
+// Set dynamic verdict/secure status based on final score
+result.isSecure = riskScore < 30;
 
         if (result.usesHTTPS) {
             result.message = "Secure HTTPS URL detected.";
